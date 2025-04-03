@@ -8,7 +8,6 @@ import MemoryMove from "../components/MemoryMove";
 import { LEVELS } from "../data/levels";
 import { shuffleArray } from "../utils/shuffle";
 import { generateShuffledCardDeck, markCardsAsMatched, resetCardSelection, isGameWon } from "../utils/gameLogic";
-import { extractCardValues } from "../utils/cards";
 
 export default function MemoryGame() {
   const [level, setLevel] = useState(LEVELS[0]);
@@ -18,6 +17,24 @@ export default function MemoryGame() {
   const [gameOver, setGameOver] = useState(false);
   const [turn, setTurn] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
+
+  const animateFlip = async () => {
+    for (let i = 0; i < cards.length; i++) {
+      if (cards[i].state) {
+        await new Promise((resolve) => {
+          setTimeout(() => {
+            setCards((prevCards) =>
+              prevCards.map((c) =>
+                c.id === cards[i].id ? { ...c, state: false } : c
+              )
+            );
+            resolve();
+          }, 250);
+        });
+        console.log(i);
+      }
+    }
+  }
 
   const handleSelectCard = (card) => {
     if (isDisabled || card.state) return;
@@ -62,21 +79,7 @@ export default function MemoryGame() {
 
     setIsDisabled(true);
 
-    for (let i = 0; i < cards.length; i++) {
-      if (cards[i].state) {
-        await new Promise((resolve) => {
-          setTimeout(() => {
-            setCards((prevCards) =>
-              prevCards.map((c) =>
-                c.id === cards[i].id ? { ...c, state: false } : c
-              )
-            );
-            resolve();
-          }, 250);
-        });
-        console.log(i);
-      }
-    }
+    await animateFlip();
 
     await new Promise((resolve) => setTimeout(resolve, 250));
     setLevel(selectedLevel);
@@ -94,21 +97,7 @@ export default function MemoryGame() {
     setIsDisabled(true);
     const newStates = cards.map((card) => ({ ...card, state: false }));
 
-    for (let i = 0; i < cards.length; i++) {
-      if (cards[i].state) {
-        await new Promise((resolve) => {
-          setTimeout(() => {
-            setCards((prevCards) =>
-              prevCards.map((c) =>
-                c.id === cards[i].id ? { ...c, state: false } : c
-              )
-            );
-            resolve();
-          }, 250);
-        });
-        console.log(i);
-      }
-    }
+    await animateFlip();
 
     await new Promise((resolve) => setTimeout(resolve, 250));
     const newOrder = shuffleArray(newStates);
@@ -122,7 +111,7 @@ export default function MemoryGame() {
     <div className='min-h-screen flex flex-col items-center gap-8 px-4 py-6'>
       <div className="w-full max-w-125 flex justify-between items-center">
         <h1 className="text-2xl font-bold">Memory Game</h1>
-        <button onClick={handleReset} disabled={isDisabled} className="p-2 rounded-full ring-1 cursor-pointer">
+        <button onClick={handleReset} className="p-2 rounded-full ring-1 cursor-pointer">
           <ResetIcon className="w-4 h-4 stroke-2 stroke-black" />
         </button>
       </div>
